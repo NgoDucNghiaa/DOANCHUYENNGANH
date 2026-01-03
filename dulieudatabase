@@ -1,0 +1,59 @@
+USE WarehouseManagement;
+GO
+
+-- 1. Thêm Đơn vị tính
+INSERT INTO Units (UnitName) VALUES (N'Cái'), (N'Bộ'), (N'Thùng'), (N'Gói'), (N'Chiếc');
+
+-- 2. Thêm Danh mục sản phẩm
+INSERT INTO Categories (CategoryName, Description) VALUES 
+(N'Linh kiện máy tính', N'Các loại RAM, CPU, VGA...'),
+(N'Thiết bị ngoại vi', N'Chuột, bàn phím, tai nghe'),
+(N'Màn hình', N'Màn hình văn phòng và gaming');
+
+-- 3. Thêm Người dùng (Lưu ý: Password nên hash, đây là pass mẫu thô)
+INSERT INTO Users (Username, Password, FullName, Role) VALUES 
+('admin', 'admin123', N'Quản trị viên BINZ', 'Admin'),
+('staff01', 'staff123', N'Nguyễn Văn Nhân Viên', 'Staff');
+
+-- 4. Thêm Nhà cung cấp
+INSERT INTO Suppliers (SupplierName, Phone, Email, Address) VALUES 
+(N'Công ty Phong Vũ', '0281234567', 'contact@phongvu.vn', N'264 Nguyễn Thị Minh Khai, Q3, HCM'),
+(N'GearVN', '18006173', 'cskh@gearvn.com', N'78-80-82 Hoàng Hoa Thám, Tân Bình, HCM');
+
+-- 5. Thêm Khách hàng
+INSERT INTO Customers (CustomerName, Phone, Address) VALUES 
+(N'Trần Văn Khách', '0908112233', N'123 Lê Lợi, Quận 1, HCM'),
+(N'Cửa hàng Laptop 24h', '0912334455', N'456 Võ Văn Ngân, Thủ Đức');
+
+-- 6. Thêm Sản phẩm
+INSERT INTO Products (ProductID, ProductName, CategoryID, UnitID, UnitPrice, MinStock) VALUES 
+('RAM001', N'RAM Kingston Fury 8GB', 1, 1, 850000, 10),
+('VGA001', N'VGA ASUS RTX 3060', 1, 1, 9500000, 5),
+('MOU001', N'Chuột Logitech G102', 2, 1, 450000, 20),
+('MON001', N'Màn hình Dell Ultrasharp 24', 3, 1, 5200000, 3);
+
+-- 7. Khởi tạo bảng Tồn kho (Ban đầu bằng 0)
+INSERT INTO Inventories (ProductID, Quantity) 
+SELECT ProductID, 0 FROM Products;
+
+-- 8. Thêm một phiếu Nhập Kho mẫu
+INSERT INTO StockIn (StockInID, SupplierID, UserID, TotalAmount, Notes) VALUES 
+('PN001', 1, 1, 17000000, N'Nhập hàng đợt đầu năm');
+
+-- Chi tiết phiếu nhập PN001
+INSERT INTO StockInDetails (StockInID, ProductID, Quantity, Price) VALUES 
+('PN001', 'RAM001', 20, 850000); -- Nhập 20 thanh RAM
+
+-- 9. Cập nhật tồn kho sau khi nhập hàng (Logic này sau này bạn viết trong C#)
+UPDATE Inventories SET Quantity = Quantity + 20 WHERE ProductID = 'RAM001';
+
+-- 10. Thêm một phiếu Xuất Kho mẫu
+INSERT INTO StockOut (StockOutID, CustomerID, UserID, TotalAmount, Notes) VALUES 
+('PX001', 1, 2, 1700000, N'Bán lẻ khách hàng');
+
+-- Chi tiết phiếu xuất PX001
+INSERT INTO StockOutDetails (StockOutID, ProductID, Quantity, Price) VALUES 
+('PX001', 'RAM001', 2, 900000); -- Xuất 2 thanh RAM
+
+-- 11. Cập nhật tồn kho sau khi xuất hàng
+UPDATE Inventories SET Quantity = Quantity - 2;
