@@ -1,0 +1,205 @@
+-- 1. Tạo Database
+
+CREATE DATABASE WarehouseManagement;
+
+GO
+
+
+
+USE WarehouseManagement;
+
+GO
+
+
+
+-- 2. Bảng Danh mục sản phẩm
+
+CREATE TABLE Categories (
+
+    CategoryID INT PRIMARY KEY IDENTITY(1,1),
+
+    CategoryName NVARCHAR(100) NOT NULL,
+
+    Description NVARCHAR(500)
+
+);
+
+
+
+-- 3. Bảng Đơn vị tính
+
+CREATE TABLE Units (
+
+    UnitID INT PRIMARY KEY IDENTITY(1,1),
+
+    UnitName NVARCHAR(50) NOT NULL
+
+);
+
+
+
+-- 4. Bảng Nhà cung cấp
+
+CREATE TABLE Suppliers (
+
+    SupplierID INT PRIMARY KEY IDENTITY(1,1),
+
+    SupplierName NVARCHAR(200) NOT NULL,
+
+    Phone VARCHAR(20),
+
+    Email VARCHAR(100),
+
+    Address NVARCHAR(500)
+
+);
+
+
+
+-- 5. Bảng Khách hàng
+
+CREATE TABLE Customers (
+
+    CustomerID INT PRIMARY KEY IDENTITY(1,1),
+
+    CustomerName NVARCHAR(200) NOT NULL,
+
+    Phone VARCHAR(20),
+
+    Email VARCHAR(100),
+
+    Address NVARCHAR(500)
+
+);
+
+
+
+-- 6. Bảng Người dùng (Hệ thống)
+
+CREATE TABLE Users (
+
+    UserID INT PRIMARY KEY IDENTITY(1,1),
+
+    Username VARCHAR(50) UNIQUE NOT NULL,
+
+    Password VARCHAR(255) NOT NULL, -- Nên lưu Hash SHA256
+
+    FullName NVARCHAR(100),
+
+    Role NVARCHAR(50) DEFAULT 'Staff' -- Admin hoặc Staff
+
+);
+
+
+
+-- 7. Bảng Sản phẩm
+
+CREATE TABLE Products (
+
+    ProductID NVARCHAR(50) PRIMARY KEY,
+
+    ProductName NVARCHAR(200) NOT NULL,
+
+    CategoryID INT,
+
+    UnitID INT,
+
+    UnitPrice DECIMAL(18, 2) DEFAULT 0,
+
+    MinStock INT DEFAULT 0, -- Ngưỡng báo động tồn kho thấp
+
+    IsActive BIT DEFAULT 1,
+
+    CONSTRAINT FK_Product_Category FOREIGN KEY (CategoryID) REFERENCES Categories(CategoryID),
+
+    CONSTRAINT FK_Product_Unit FOREIGN KEY (UnitID) REFERENCES Units(UnitID)
+
+);
+
+
+
+-- 8. Bảng Phiếu Nhập Kho
+
+CREATE TABLE StockIn (
+
+    StockInID NVARCHAR(50) PRIMARY KEY,
+
+    DateImport DATETIME DEFAULT GETDATE(),
+
+    SupplierID INT,
+
+    UserID INT,
+
+    TotalAmount DECIMAL(18, 2) DEFAULT 0,
+
+    Notes NVARCHAR(500),
+
+    CONSTRAINT FK_StockIn_Supplier FOREIGN KEY (SupplierID) REFERENCES Suppliers(SupplierID),
+
+    CONSTRAINT FK_StockIn_User FOREIGN KEY (UserID) REFERENCES Users(UserID)
+
+);
+
+
+
+-- 9. Bảng Chi tiết Phiếu Nhập
+
+CREATE TABLE StockInDetails (
+
+    DetailID INT PRIMARY KEY IDENTITY(1,1),
+
+    StockInID NVARCHAR(50),
+
+    ProductID NVARCHAR(50),
+
+    Quantity INT NOT NULL CHECK (Quantity > 0),
+
+    Price DECIMAL(18, 2) NOT NULL,
+
+    CONSTRAINT FK_DetailIn_Header FOREIGN KEY (StockInID) REFERENCES StockIn(StockInID) ON DELETE CASCADE,
+
+    CONSTRAINT FK_DetailIn_Product FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+
+);
+
+
+
+-- 10. Bảng Phiếu Xuất Kho
+
+CREATE TABLE StockOut (
+
+    StockOutID NVARCHAR(50) PRIMARY KEY,
+
+    DateExport DATETIME DEFAULT GETDATE(),
+
+    CustomerID INT,
+
+    UserID INT,
+
+    TotalAmount DECIMAL(18, 2) DEFAULT 0,
+
+    Notes NVARCHAR(500),
+
+    CONSTRAINT FK_StockOut_Customer FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID),
+
+    CONSTRAINT FK_StockOut_User FOREIGN KEY (UserID) REFERENCES Users(UserID)
+
+);
+
+
+
+-- 11. Bảng Chi tiết Phiếu Xuất
+
+CREATE TABLE StockOutDetails (
+
+    DetailID INT PRIMARY KEY IDENTITY(1,1),
+
+    StockOutID NVARCHAR(50),
+
+    ProductID NVARCHAR(50),
+
+    Quantity INT NOT NULL CHECK (Quantity > 0),
+
+    Price DECIMAL(18, 2) NOT NULL,
+
+    CONSTRAINT FK_DetailOut_Header FOREIGN KEY (StockOutID) REFERENCES StockOut(StockOutID) ON
